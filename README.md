@@ -10,6 +10,8 @@ The API classifier detects pi as a third-party app and blocks subscription billi
 2. Adds billing header for subscription rate-limit routing
 3. Strips prefix block that triggers detection
 
+Scope: this patch only runs for Anthropic/Claude provider requests. Other providers are left unchanged.
+
 No token swap, no SDK dependency, no proxy. Just a `before_provider_request` hook. Pi's built-in provider handles everything else — caching, token refresh, thinking, streaming, tool mapping.
 
 ## Install
