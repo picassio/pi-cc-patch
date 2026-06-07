@@ -58,39 +58,17 @@ function resolveAnthropicModelAlias(model: string): string {
 
 function sanitizeText(text: string): string {
 	return text
-		.replace(/operating inside pi, a coding agent harness\./gi, "operating as a coding assistant.")
-		.replace(/Pi documentation/gi, "Documentation")
-		.replace(/pi itself,/gi, "the tool itself,")
-		.replace(/pi packages/gi, "packages")
-		.replace(/read pi \.md/gi, "read .md")
-		.replace(/@mariozechner\//gi, "@earendil-works/")
-		.replace(/(?<!\/)pi-coding-agent/gi, "coding-agent")
-		.replace(/about pi\b/gi, "about this tool")
-		.replace(/pi update\b/gi, "update")
-		.replace(/Run pi update/gi, "Run update")
-		.replace(/\bpi\b([\s,.])/gi, "the assistant$1");
-}
-
-const SANITIZED_STRING_KEYS = new Set(["text", "content", "description", "instructions", "prompt", "system"]);
-const UNSAFE_TO_REWRITE_KEYS = new Set(["model", "thinking", "thinkingSignature", "signature", "id", "name"]);
-
-function sanitizeProviderPayloadStrings(value: any, key = ""): any {
-	if (typeof value === "string") {
-		if (UNSAFE_TO_REWRITE_KEYS.has(key)) return value;
-		return SANITIZED_STRING_KEYS.has(key) ? sanitizeText(value) : value;
-	}
-
-	if (Array.isArray(value)) {
-		return value.map((item) => sanitizeProviderPayloadStrings(item, key));
-	}
-
-	if (!value || typeof value !== "object") return value;
-
-	for (const [childKey, childValue] of Object.entries(value)) {
-		value[childKey] = sanitizeProviderPayloadStrings(childValue, childKey);
-	}
-
-	return value;
+		.replace(/operating inside pi, a coding agent harness\./g, "operating as a coding assistant.")
+		.replace(/Pi documentation/g, "Documentation")
+		.replace(/pi itself,/g, "the tool itself,")
+		.replace(/pi packages/g, "packages")
+		.replace(/read pi \.md/g, "read .md")
+		.replace(/@mariozechner\//g, "@earendil-works/")
+		.replace(/(?<!\/)pi-coding-agent/g, "coding-agent")
+		.replace(/about pi\b/g, "about this tool")
+		.replace(/pi update\b/g, "update")
+		.replace(/Run pi update/g, "Run update")
+		.replace(/\bpi\b([\s,.])/g, "the assistant$1");
 }
 
 export default function (pi: ExtensionAPI) {
@@ -128,7 +106,18 @@ export default function (pi: ExtensionAPI) {
 			payload.system = [{ type: "text", text: BILLING_HEADER_TEXT }];
 		}
 
-		sanitizeProviderPayloadStrings(payload);
+		for (const message of payload.messages) {
+			if (typeof message?.content === "string") {
+				message.content = sanitizeText(message.content);
+			} else if (Array.isArray(message?.content)) {
+				message.content = message.content.map((block: any) => {
+					if (block?.type === "text" && typeof block.text === "string") {
+						return { ...block, text: sanitizeText(block.text) };
+					}
+					return block;
+				});
+			}
+		}
 
 		if (!payload.metadata) {
 			payload.metadata = {
