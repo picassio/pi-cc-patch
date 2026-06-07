@@ -5,7 +5,6 @@
  * 1. Sanitizes trigger phrases from system prompt (trips the API classifier)
  * 2. Adds billing header for subscription rate-limit bucket
  * 3. Strips the separate identity prefix block that triggers detection
- * 4. Rewrites retired Anthropic model aliases that now 404
  *
  * Preserves ALL of pi's built-in behaviors: prompt caching, session routing,
  * compaction, tool name mapping, thinking modes, token refresh, etc.
@@ -13,26 +12,7 @@
  * REQUIRES: /login (pi's normal OAuth)
  */
 
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-
-const RETIRED_ANTHROPIC_MODEL_ALIASES: Record<string, string> = {
-	"anthropic/claude-3-5-haiku-latest": "claude-haiku-4-5",
-	"claude-3-5-haiku-latest": "claude-haiku-4-5",
-	"anthropic/claude-3-5-haiku-20241022": "claude-haiku-4-5-20251001",
-	"claude-3-5-haiku-20241022": "claude-haiku-4-5-20251001",
-
-	"anthropic/claude-3-5-sonnet-latest": "claude-sonnet-4-5",
-	"claude-3-5-sonnet-latest": "claude-sonnet-4-5",
-	"anthropic/claude-3-5-sonnet-20241022": "claude-sonnet-4-5-20250929",
-	"claude-3-5-sonnet-20241022": "claude-sonnet-4-5-20250929",
-	"anthropic/claude-3-5-sonnet-20240620": "claude-sonnet-4-5-20250929",
-	"claude-3-5-sonnet-20240620": "claude-sonnet-4-5-20250929",
-
-	"anthropic/claude-3-7-sonnet-latest": "claude-sonnet-4-5",
-	"claude-3-7-sonnet-latest": "claude-sonnet-4-5",
-	"anthropic/claude-3-7-sonnet-20250219": "claude-sonnet-4-5-20250929",
-	"claude-3-7-sonnet-20250219": "claude-sonnet-4-5-20250929",
-};
+import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 
 function isAnthropicTarget(
 	payload: Record<string, any>,
@@ -50,10 +30,6 @@ function isAnthropicTarget(
 	);
 }
 
-function resolveAnthropicModelAlias(model: string): string {
-	return RETIRED_ANTHROPIC_MODEL_ALIASES[model.toLowerCase()] ?? model;
-}
-
 function sanitizeSystemPrompt(text: string): string {
 	return text
 		.replace(/operating inside pi, a coding agent harness\./g, "operating as a coding assistant.")
@@ -61,8 +37,9 @@ function sanitizeSystemPrompt(text: string): string {
 		.replace(/pi itself,/g, "the tool itself,")
 		.replace(/pi packages/g, "packages")
 		.replace(/read pi \.md/g, "read .md")
-		.replace(/@mariozechner\//g, "@earendil-works/")
-		.replace(/(?<!\/)pi-coding-agent/g, "coding-agent")
+		.replace(/pi-coding-agent/g, "coding-agent")
+		.replace(/@mariozechner\/pi-ai/g, "@anthropic/ai")
+		.replace(/@mariozechner\/pi-tui/g, "@anthropic/tui")
 		.replace(/about pi\b/g, "about this tool")
 		.replace(/pi update\b/g, "update")
 		.replace(/Run pi update/g, "Run update")
@@ -75,10 +52,6 @@ export default function (pi: ExtensionAPI) {
 		if (!payload || typeof payload !== "object") return;
 		if (!Array.isArray(payload.messages)) return;
 		if (!isAnthropicTarget(payload, ctx.model as { provider?: string; id?: string } | undefined)) return;
-
-		if (typeof payload.model === "string") {
-			payload.model = resolveAnthropicModelAlias(payload.model);
-		}
 
 		if (Array.isArray(payload.system)) {
 			const newBlocks: any[] = [];
