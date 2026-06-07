@@ -15,8 +15,6 @@
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-const BILLING_HEADER_TEXT = "x-anthropic-billing-header: cc_version=2.1.96.000; cc_entrypoint=cli;";
-
 const RETIRED_ANTHROPIC_MODEL_ALIASES: Record<string, string> = {
 	"anthropic/claude-3-5-haiku-latest": "claude-haiku-4-5",
 	"claude-3-5-haiku-latest": "claude-haiku-4-5",
@@ -56,7 +54,7 @@ function resolveAnthropicModelAlias(model: string): string {
 	return RETIRED_ANTHROPIC_MODEL_ALIASES[model.toLowerCase()] ?? model;
 }
 
-function sanitizeText(text: string): string {
+function sanitizeSystemPrompt(text: string): string {
 	return text
 		.replace(/operating inside pi, a coding agent harness\./g, "operating as a coding assistant.")
 		.replace(/Pi documentation/g, "Documentation")
@@ -85,38 +83,26 @@ export default function (pi: ExtensionAPI) {
 		if (Array.isArray(payload.system)) {
 			const newBlocks: any[] = [];
 
-			// Billing header as first block for subscription rate-limit routing.
-			newBlocks.push({ type: "text", text: BILLING_HEADER_TEXT });
+			// Billing header as first block for subscription rate-limit routing
+			newBlocks.push({
+				type: "text",
+				text: "x-anthropic-billing-header: cc_version=2.1.96.000; cc_entrypoint=cli;",
+			});
 
 			for (const block of payload.system) {
 				if (block.type !== "text" || !block.text) { newBlocks.push(block); continue; }
 				if (block.text.startsWith("x-anthropic-billing-header")) continue;
 				if (block.text.startsWith("You are") && block.text.includes("official CLI")) continue;
 
-				newBlocks.push({ ...block, text: sanitizeText(block.text) });
+				newBlocks.push({ ...block, text: sanitizeSystemPrompt(block.text) });
 			}
 
 			payload.system = newBlocks;
 		} else if (typeof payload.system === "string") {
 			payload.system = [
-				{ type: "text", text: BILLING_HEADER_TEXT },
-				{ type: "text", text: sanitizeText(payload.system) },
+				{ type: "text", text: "x-anthropic-billing-header: cc_version=2.1.96.000; cc_entrypoint=cli;" },
+				{ type: "text", text: sanitizeSystemPrompt(payload.system) },
 			];
-		} else {
-			payload.system = [{ type: "text", text: BILLING_HEADER_TEXT }];
-		}
-
-		for (const message of payload.messages) {
-			if (typeof message?.content === "string") {
-				message.content = sanitizeText(message.content);
-			} else if (Array.isArray(message?.content)) {
-				message.content = message.content.map((block: any) => {
-					if (block?.type === "text" && typeof block.text === "string") {
-						return { ...block, text: sanitizeText(block.text) };
-					}
-					return block;
-				});
-			}
 		}
 
 		if (!payload.metadata) {

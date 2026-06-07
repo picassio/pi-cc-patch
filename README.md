@@ -6,8 +6,8 @@ Use your Pro/Max subscription billing with [pi](https://github.com/earendil-work
 
 The API classifier detects pi as a third-party app and blocks subscription billing. This extension patches Anthropic/Claude request payloads to bypass it:
 
-1. Sanitizes trigger phrases from the system prompt and text message history
-2. Adds billing header for subscription rate-limit routing, even if a later request has no system block
+1. Sanitizes trigger phrases from the system prompt
+2. Adds billing header for subscription rate-limit routing
 3. Strips prefix block that triggers detection
 4. Rewrites retired Anthropic model aliases that now return `404 not_found_error`
 
