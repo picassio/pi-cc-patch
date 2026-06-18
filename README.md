@@ -22,6 +22,33 @@ pi install git:github.com/picassio/pi-cc-patch
 
 Then restart pi. Use `/login` if you haven't already.
 
+## Optional: CLIProxyAPI sidecar
+
+This repo also includes an optional provider scaffold for [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI). Use this when you want CLIProxyAPI to own the Claude Code cloaking/signing and account routing instead of relying only on pi's `before_provider_request` hook.
+
+Build and start CLIProxyAPI:
+
+```bash
+git clone https://github.com/router-for-me/CLIProxyAPI /tmp/CLIProxyAPI
+cd /tmp/CLIProxyAPI
+go build -o /tmp/cliproxyapi ./cmd/server
+/tmp/cliproxyapi -config /path/to/pi-cc-patch/cliproxy.config.yaml -local-model
+```
+
+Add Claude OAuth credentials to CLIProxyAPI:
+
+```bash
+/tmp/cliproxyapi -config /path/to/pi-cc-patch/cliproxy.config.yaml -claude-login -no-browser
+```
+
+Then run pi with the local sidecar provider:
+
+```bash
+pi -e /path/to/pi-cc-patch/cliproxy-provider.ts --model cliproxy-claude/claude-haiku-4-5
+```
+
+The sidecar path requires at least one healthy Claude auth entry in `~/.cli-proxy-api`. Without one, requests will fail before reaching Anthropic.
+
 ## Uninstall
 
 ```bash

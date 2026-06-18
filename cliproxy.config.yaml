@@ -1,0 +1,31 @@
+host: "127.0.0.1"
+port: 8317
+
+tls:
+  enable: false
+
+remote-management:
+  allow-remote: false
+  secret-key: ""
+  disable-control-panel: true
+
+auth-dir: "~/.cli-proxy-api"
+
+# Local-only key used by pi to call the sidecar. This is not an upstream provider key.
+api-keys:
+  - "local-pi-cliproxy"
+
+debug: false
+
+# Keep Claude Code cloaking enabled. This is the key CLIProxyAPI behavior we want.
+disable-claude-cloak-mode: false
+
+routing:
+  strategy: "round-robin"
+  session-affinity: true
+  session-affinity-ttl: "1h"
+
+# Claude OAuth credentials should be added with:
+#   /tmp/cliproxyapi -config /home/ubuntu/projects/pi-cc-patch/cliproxy.config.yaml -claude-login -no-browser
+# or by starting the TUI:
+#   /tmp/cliproxyapi -config /home/ubuntu/projects/pi-cc-patch/cliproxy.config.yaml -tui -standalone
