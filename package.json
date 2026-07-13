@@ -1,8 +1,33 @@
 {
   "name": "pi-cc-patch",
   "version": "1.0.0",
-  "description": "Use Claude Pro/Max subscription with pi — bypasses third-party app detection",
+  "description": "Use Claude Pro/Max subscription with pi \u2014 bypasses third-party app detection",
   "pi": {
-    "extensions": ["./index.ts"]
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "keywords": [
+    "pi-package",
+    "pi",
+    "pi-extension",
+    "claude",
+    "anthropic",
+    "oauth",
+    "subscription"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "index.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/picassio/pi-cc-patch.git"
   }
 }
