@@ -12,21 +12,24 @@
  * REQUIRES: /login (pi's normal OAuth)
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-function isAnthropicTarget(
+function isDirectAnthropicOAuth(
 	payload: Record<string, any>,
-	model: { provider?: string; id?: string } | undefined,
+	model: { provider?: string } | undefined,
 ): boolean {
-	const provider = typeof model?.provider === "string" ? model.provider.toLowerCase() : "";
-	const modelId = typeof model?.id === "string" ? model.id.toLowerCase() : "";
-	const payloadModel = typeof payload.model === "string" ? payload.model.toLowerCase() : "";
+	if (model?.provider?.toLowerCase() !== "anthropic") return false;
+	if (!Array.isArray(payload.system)) return false;
 
-	return (
-		provider.includes("anthropic") ||
-		modelId.includes("claude") ||
-		payloadModel.includes("anthropic") ||
-		payloadModel.includes("claude")
+	// Pi adds this identity block only for direct Anthropic OAuth requests.
+	// Requiring it prevents Claude models on Bedrock/OpenRouter and direct
+	// Anthropic API-key requests from receiving OAuth-specific payload changes.
+	return payload.system.some(
+		(block: any) =>
+			block?.type === "text" &&
+			typeof block.text === "string" &&
+			block.text.startsWith("You are Claude Code") &&
+			block.text.includes("official CLI"),
 	);
 }
 
@@ -51,32 +54,25 @@ export default function (pi: ExtensionAPI) {
 		const payload = event.payload as Record<string, any>;
 		if (!payload || typeof payload !== "object") return;
 		if (!Array.isArray(payload.messages)) return;
-		if (!isAnthropicTarget(payload, ctx.model as { provider?: string; id?: string } | undefined)) return;
+		if (!isDirectAnthropicOAuth(payload, ctx.model as { provider?: string } | undefined)) return;
 
-		if (Array.isArray(payload.system)) {
-			const newBlocks: any[] = [];
+		const newBlocks: any[] = [];
 
-			// Billing header as first block for subscription rate-limit routing
-			newBlocks.push({
-				type: "text",
-				text: "x-anthropic-billing-header: cc_version=2.1.96.000; cc_entrypoint=cli;",
-			});
+		// Billing header as first block for subscription rate-limit routing
+		newBlocks.push({
+			type: "text",
+			text: "x-anthropic-billing-header: cc_version=2.1.96.000; cc_entrypoint=cli;",
+		});
 
-			for (const block of payload.system) {
-				if (block.type !== "text" || !block.text) { newBlocks.push(block); continue; }
-				if (block.text.startsWith("x-anthropic-billing-header")) continue;
-				if (block.text.startsWith("You are") && block.text.includes("official CLI")) continue;
+		for (const block of payload.system) {
+			if (block.type !== "text" || !block.text) { newBlocks.push(block); continue; }
+			if (block.text.startsWith("x-anthropic-billing-header")) continue;
+			if (block.text.startsWith("You are") && block.text.includes("official CLI")) continue;
 
-				newBlocks.push({ ...block, text: sanitizeSystemPrompt(block.text) });
-			}
-
-			payload.system = newBlocks;
-		} else if (typeof payload.system === "string") {
-			payload.system = [
-				{ type: "text", text: "x-anthropic-billing-header: cc_version=2.1.96.000; cc_entrypoint=cli;" },
-				{ type: "text", text: sanitizeSystemPrompt(payload.system) },
-			];
+			newBlocks.push({ ...block, text: sanitizeSystemPrompt(block.text) });
 		}
+
+		payload.system = newBlocks;
 
 		if (!payload.metadata) {
 			payload.metadata = {

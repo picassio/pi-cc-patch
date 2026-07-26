@@ -1,6 +1,6 @@
 # pi-cc-patch
 
-Use your Pro/Max subscription billing with [pi](https://github.com/mariozechner/pi-coding-agent) instead of getting the "Third-party apps now draw from your extra usage" error.
+Use your Pro/Max subscription billing with [pi](https://github.com/earendil-works/pi) instead of getting the "Third-party apps now draw from your extra usage" error.
 
 ## What it does
 
@@ -10,7 +10,7 @@ The API classifier detects pi as a third-party app and blocks subscription billi
 2. Adds billing header for subscription rate-limit routing
 3. Strips prefix block that triggers detection
 
-Scope: this patch only runs for Anthropic/Claude provider requests. Other providers are left unchanged.
+Scope: this patch runs only for direct Anthropic OAuth requests, identified by Pi's OAuth-only Claude Code identity block. Anthropic API-key, Amazon Bedrock, OpenRouter, gateway, and other provider requests are left unchanged.
 
 No token swap, no SDK dependency, no proxy. Just a `before_provider_request` hook. Pi's built-in provider handles everything else — caching, token refresh, thinking, streaming, tool mapping.
 

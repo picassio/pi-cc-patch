@@ -18,6 +18,8 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+      - name: Test
+        run: npm test
       - name: Verify tag matches package version
         if: github.ref_type == 'tag'
         run: |

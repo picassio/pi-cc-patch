@@ -7,6 +7,9 @@
       "./index.ts"
     ]
   },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
   "keywords": [
     "pi-package",
     "pi",
