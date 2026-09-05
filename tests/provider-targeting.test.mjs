@@ -24,21 +24,24 @@ function clone(value) {
 	return structuredClone(value);
 }
 
-test("rewrites direct Anthropic OAuth payloads", async () => {
+test("rewrites Fable 5.1 OAuth payloads with a supported Claude Code version", async () => {
 	const handler = registerHandler();
 	const payload = {
-		model: "claude-opus-5",
+		model: "claude-fable-5-1",
 		messages: [{ role: "user", content: "hello" }],
 		system: [oauthIdentity, { type: "text", text: "You are operating inside pi, a coding agent harness." }],
 	};
 
 	const result = await handler(
 		{ payload },
-		{ model: { provider: "anthropic", id: "claude-opus-5" } },
+		{ model: { provider: "anthropic", id: "claude-fable-5-1" } },
 	);
 
 	assert.equal(result, payload);
-	assert.match(payload.system[0].text, /^x-anthropic-billing-header:/);
+	assert.equal(
+		payload.system[0].text,
+		"x-anthropic-billing-header: cc_version=2.1.261.000; cc_entrypoint=cli;",
+	);
 	assert.equal(payload.system.some((block) => block.text?.includes("official CLI")), false);
 	assert.equal(payload.system[1].text, "You are operating as a coding assistant.");
 	assert.equal(typeof payload.metadata.user_id, "string");

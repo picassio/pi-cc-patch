@@ -1,6 +1,6 @@
 {
   "name": "pi-cc-patch",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Use Claude Pro/Max subscription with pi — bypasses third-party app detection",
   "pi": {
     "extensions": [

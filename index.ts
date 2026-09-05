@@ -14,6 +14,11 @@
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
+// Keep this at or above Anthropic's minimum for the newest OAuth models.
+// Fable 5.1 rejected the previous 2.1.96 identity with
+// error_code=claude_code_version_too_old (minimum 2.1.251).
+const CLAUDE_CODE_VERSION = "2.1.261";
+
 function isDirectAnthropicOAuth(
 	payload: Record<string, any>,
 	model: { provider?: string } | undefined,
@@ -61,7 +66,7 @@ export default function (pi: ExtensionAPI) {
 		// Billing header as first block for subscription rate-limit routing
 		newBlocks.push({
 			type: "text",
-			text: "x-anthropic-billing-header: cc_version=2.1.96.000; cc_entrypoint=cli;",
+			text: `x-anthropic-billing-header: cc_version=${CLAUDE_CODE_VERSION}.000; cc_entrypoint=cli;`,
 		});
 
 		for (const block of payload.system) {
