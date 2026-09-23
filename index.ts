@@ -15,9 +15,9 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 // Keep this at or above Anthropic's minimum for the newest OAuth models.
-// Fable 5.1 rejected the previous 2.1.96 identity with
-// error_code=claude_code_version_too_old (minimum 2.1.251).
-const CLAUDE_CODE_VERSION = "2.1.261";
+// Opus 5.5 rejected the previous identity with
+// error_code=claude_code_version_too_old (minimum 2.1.280).
+const CLAUDE_CODE_VERSION = "2.1.280";
 
 function isDirectAnthropicOAuth(
 	payload: Record<string, any>,

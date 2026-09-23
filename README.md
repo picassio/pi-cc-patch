@@ -10,7 +10,7 @@ The API classifier detects pi as a third-party app and blocks subscription billi
 2. Adds billing header for subscription rate-limit routing
 3. Strips prefix block that triggers detection
 
-Version 1.0.2 advertises Claude Code 2.1.261 in the subscription billing block. Anthropic currently requires at least 2.1.251 for Claude Fable 5.1; older identities fail with `claude_code_version_too_old`.
+The subscription billing block advertises Claude Code 2.1.280. Anthropic currently requires at least 2.1.280 for Claude Opus 5.5; older identities fail with `claude_code_version_too_old`.
 
 Scope: this patch runs only for direct Anthropic OAuth requests, identified by Pi's OAuth-only Claude Code identity block. Anthropic API-key, Amazon Bedrock, OpenRouter, gateway, and other provider requests are left unchanged.
 
