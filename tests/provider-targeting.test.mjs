@@ -42,8 +42,8 @@ test("rewrites Fable 5.1 OAuth payloads with a supported Claude Code version", a
 		payload.system[0].text,
 		"x-anthropic-billing-header: cc_version=2.1.280.000; cc_entrypoint=cli;",
 	);
-	assert.equal(payload.system.some((block) => block.text?.includes("official CLI")), false);
-	assert.equal(payload.system[1].text, "You are operating as a coding assistant.");
+	assert.deepEqual(payload.system[1], oauthIdentity);
+	assert.equal(payload.system[2].text, "You are operating as a coding assistant.");
 	assert.equal(typeof payload.metadata.user_id, "string");
 });
 
@@ -69,6 +69,7 @@ test("rewrites Opus 5.5 OAuth payloads with the required Claude Code version", a
 	assert.equal(result, payload);
 	assert.deepEqual(payload.system, [
 		{ type: "text", text: "x-anthropic-billing-header: cc_version=2.1.280.000; cc_entrypoint=cli;" },
+		oauthIdentity,
 		{ type: "text", text: "You are operating as a coding assistant.", cache_control: { type: "ephemeral" } },
 	]);
 	assert.equal(payload.model, before.model);

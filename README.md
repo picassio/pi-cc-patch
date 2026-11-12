@@ -8,7 +8,9 @@ The API classifier detects pi as a third-party app and blocks subscription billi
 
 1. Sanitizes trigger phrases from the system prompt
 2. Adds billing header for subscription rate-limit routing
-3. Strips prefix block that triggers detection
+3. Keeps Claude Code's identity block after the billing header
+
+Pi 1.5.1 and later use Anthropic message threads: after the first request, each request sends only the new messages and continues from the previous reply, without `system`. Anthropic rejects those `continue` requests with `429 rate_limit_error` ("Error") when the thread's stored system prompt lacks Claude Code's identity block, so the patch keeps that block. In live tests with the block kept, `continue` requests succeed and responses carry the same subscription rate-limit headers (`anthropic-ratelimit-unified-*`) as with the block stripped.
 
 Version 1.0.3 advertises Claude Code 2.1.280 in the subscription billing block to meet the minimum version reported by Anthropic for Opus 5.5. The previous 2.1.261 identity is rejected with `claude_code_version_too_old`. This updates the request identity; model availability still depends on Pi's model catalog and your Anthropic account.
 
@@ -30,7 +32,7 @@ Then restart pi. Use `/login` if you haven't already.
 npm test
 ```
 
-The tests cover Opus 5.5 and Fable 5.1 OAuth payload rewriting, replacement of an older billing block, preservation of existing metadata and prompt cache settings, and unchanged API-key/Bedrock/OpenRouter requests. They do not verify live API acceptance or billing.
+The tests cover Opus 5.5 and Fable 5.1 OAuth payload rewriting, replacement of an older billing block, the kept Claude Code identity block, preservation of existing metadata and prompt cache settings, and unchanged API-key/Bedrock/OpenRouter requests. They do not verify live API acceptance or billing.
 
 To try the working tree before publishing, start Pi with `pi -e ./index.ts`, select Opus 5.5 via `/model`, and send a short prompt. Avoid loading another copy of this extension at the same time.
 
