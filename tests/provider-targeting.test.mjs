@@ -24,23 +24,23 @@ function clone(value) {
 	return structuredClone(value);
 }
 
-test("rewrites Fable 5.1 OAuth payloads with a supported Claude Code version", async () => {
+test("rewrites Fable 5.2 OAuth payloads with a supported Claude Code version", async () => {
 	const handler = registerHandler();
 	const payload = {
-		model: "claude-fable-5-1",
+		model: "claude-fable-5-2",
 		messages: [{ role: "user", content: "hello" }],
 		system: [oauthIdentity, { type: "text", text: "You are operating inside pi, a coding agent harness." }],
 	};
 
 	const result = await handler(
 		{ payload },
-		{ model: { provider: "anthropic", id: "claude-fable-5-1" } },
+		{ model: { provider: "anthropic", id: "claude-fable-5-2" } },
 	);
 
 	assert.equal(result, payload);
 	assert.equal(
 		payload.system[0].text,
-		"x-anthropic-billing-header: cc_version=2.1.280.000; cc_entrypoint=cli;",
+		"x-anthropic-billing-header: cc_version=2.1.308.000; cc_entrypoint=cli;",
 	);
 	assert.equal(payload.system.some((block) => block.text?.includes("official CLI")), false);
 	assert.equal(payload.system[1].text, "You are operating as a coding assistant.");
@@ -54,7 +54,7 @@ test("rewrites Opus 5.5 OAuth payloads with the required Claude Code version", a
 		messages: [{ role: "user", content: "hello" }],
 		system: [
 			oauthIdentity,
-			{ type: "text", text: "x-anthropic-billing-header: cc_version=2.1.261.000; cc_entrypoint=cli;" },
+			{ type: "text", text: "x-anthropic-billing-header: cc_version=2.1.280.000; cc_entrypoint=cli;" },
 			{ type: "text", text: "You are operating inside pi, a coding agent harness.", cache_control: { type: "ephemeral" } },
 		],
 		metadata: { user_id: "existing-user-id" },
@@ -68,7 +68,7 @@ test("rewrites Opus 5.5 OAuth payloads with the required Claude Code version", a
 
 	assert.equal(result, payload);
 	assert.deepEqual(payload.system, [
-		{ type: "text", text: "x-anthropic-billing-header: cc_version=2.1.280.000; cc_entrypoint=cli;" },
+		{ type: "text", text: "x-anthropic-billing-header: cc_version=2.1.308.000; cc_entrypoint=cli;" },
 		{ type: "text", text: "You are operating as a coding assistant.", cache_control: { type: "ephemeral" } },
 	]);
 	assert.equal(payload.model, before.model);
