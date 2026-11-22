@@ -4,7 +4,8 @@
  * Uses pi's OWN OAuth token. Only patches the request payload:
  * 1. Sanitizes trigger phrases from system prompt (trips the API classifier)
  * 2. Adds billing header for subscription rate-limit bucket
- * 3. Strips the separate identity prefix block that triggers detection
+ * 3. Keeps Claude Code's identity block after the billing header (Anthropic
+ *    message threads need it, see below)
  *
  * Preserves ALL of pi's built-in behaviors: prompt caching, session routing,
  * compaction, tool name mapping, thinking modes, token refresh, etc.
@@ -72,7 +73,9 @@ export default function (pi: ExtensionAPI) {
 		for (const block of payload.system) {
 			if (block.type !== "text" || !block.text) { newBlocks.push(block); continue; }
 			if (block.text.startsWith("x-anthropic-billing-header")) continue;
-			if (block.text.startsWith("You are") && block.text.includes("official CLI")) continue;
+			// Keep Claude Code's identity block. Message-thread `continue` requests omit `system`,
+			// and Anthropic rejects them with 429 when the thread's stored system prompt lacks it.
+			if (block.text.startsWith("You are") && block.text.includes("official CLI")) { newBlocks.push(block); continue; }
 
 			newBlocks.push({ ...block, text: sanitizeSystemPrompt(block.text) });
 		}
