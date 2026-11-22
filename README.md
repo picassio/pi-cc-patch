@@ -32,7 +32,7 @@ Then restart pi. Use `/login` if you haven't already.
 npm test
 ```
 
-The tests cover Opus 5.5 and Fable 5.2 OAuth payload rewriting, replacement of an older billing block, the kept Claude Code identity block, preservation of existing metadata and prompt cache settings, and unchanged API-key/Bedrock/OpenRouter requests. They do not verify live API acceptance or billing.
+The tests cover Opus 5.5 and Fable 5.2 OAuth payload rewriting, replacement of an older billing block, the kept Claude Code identity block, message-thread `continue` requests left unchanged, preservation of existing metadata and prompt cache settings, and unchanged API-key/Bedrock/OpenRouter requests. They do not verify live API acceptance or billing.
 
 To try the working tree before publishing, start Pi with `pi -e ./index.ts`, select Opus 5.5 via `/model`, and send a short prompt. Avoid loading another copy of this extension at the same time.
 

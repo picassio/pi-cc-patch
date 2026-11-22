@@ -77,6 +77,24 @@ test("rewrites Opus 5.5 OAuth payloads with the required Claude Code version", a
 	assert.deepEqual(payload.metadata, before.metadata);
 });
 
+test("leaves message-thread continue payloads unchanged: the thread keeps the first request's system prompt", async () => {
+	const handler = registerHandler();
+	const payload = {
+		model: "claude-opus-5-5",
+		messages: [{ role: "user", content: "and then?" }],
+		thread: { type: "continue" },
+	};
+	const before = clone(payload);
+
+	const result = await handler(
+		{ payload },
+		{ model: { provider: "anthropic", id: "claude-opus-5-5" } },
+	);
+
+	assert.equal(result, undefined);
+	assert.deepEqual(payload, before);
+});
+
 test("leaves direct Anthropic API-key payloads unchanged", async () => {
 	const handler = registerHandler();
 	const payload = {
